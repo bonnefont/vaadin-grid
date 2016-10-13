@@ -21,76 +21,7 @@
 
 <body unresolved>
 
-  <dom-module id="vaadin-grid-sorter">
-    <template>
-      <style>
-        :host {
-          display: inline-block;
-          cursor: pointer;
-        }
 
-        #indicator[direction=asc] {
-          transform: rotateZ(180deg);
-        }
-      </style>
-
-      <content>
-        <div direction$="[[sort.direction]]" id="indicator">^</div>
-      </content>
-    </template>
-    <script>
-      Polymer({
-        is: 'vaadin-grid-sorter',
-
-        listeners: {
-          'tap' : '_onTap'
-        },
-
-        properties: {
-
-          sortOrder: {
-            type: Array,
-            notify: true
-          },
-
-          path: String,
-
-          sort: Object
-        },
-
-        _onTap: function() {
-          var grid = this._getGrid(this.parentNode);
-          grid.sortOrder = grid.sortOrder || [];
-
-          var sort = grid.sortOrder.filter(function(sort) {
-            return sort.path === this.path;
-          }, this)[0];
-
-          sort = sort || {path: this.path, direction: 'desc'};
-
-          if (sort.direction === 'desc') {
-            sort.direction = 'asc';
-          } else if (sort.direction === 'asc') {
-            sort.direction = 'desc';
-          }
-
-          grid.sortOrder.splice(grid.sortOrder.indexOf(sort), 1);
-
-          this.notifyPath('sort', sort);
-          this.notifyPath('sort.direction', sort.direction);
-
-          grid.push('sortOrder', sort);
-        },
-
-        _getGrid: function(node) {
-          if (node.is == 'vaadin-grid') {
-            return node;
-          }
-          return this._getGrid(node.parentNode);
-        }
-      });
-    </script>
-  </dom-module>
 
   <dom-module id="x-app">
     <template>
@@ -121,10 +52,9 @@
             [[item.b]]
           </template>
           <template is="header">
-            <div>
-              <span>Foobar</span>
-              <vaadin-grid-sorter path="a"></vaadin-grid-sorter>
-            <div>
+            <vaadin-grid-sorter path="a" direction="asc" sort-order="1">
+              <span>lol</span><input>
+            </vaadin-grid-sorter>
           </template>
         </vaadin-grid-column>
 
