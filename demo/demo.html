@@ -45,7 +45,7 @@
           <template is="header">
             <div>
               A
-              <vaadin-grid-sorter path="a"></vaadin-grid-sorter>
+              <vaadin-grid-sorter path="a" direction="desc" order="1"></vaadin-grid-sorter>
             </div>
           </template>
         </vaadin-grid-column>
@@ -55,7 +55,7 @@
             [[item.b]]
           </template>
           <template is="header">
-            <vaadin-grid-sorter path="b" direction="asc" sort-order="1">
+            <vaadin-grid-sorter path="b" direction="asc" order="2">
               <span>lol</span><input>
             </vaadin-grid-sorter>
           </template>

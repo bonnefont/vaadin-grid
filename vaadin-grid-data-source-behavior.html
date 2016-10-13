@@ -212,7 +212,7 @@
         // make sure same page isn't requested multiple times.
         if (!this._pendingRequests[page] && this.dataSource) {
           this._pendingRequests[page] = true;
-          var opts = {page: page, pageSize: this.pageSize, sortOrder: this._sortOrder};
+          var opts = {page: page, pageSize: this.pageSize, sortOrder: this._sorters}; //TODO: Should we map the this._sorters elements into objects?
           this.dataSource(opts, function(items) {
             this._cache[page] = items;
             delete this._pendingRequests[page];

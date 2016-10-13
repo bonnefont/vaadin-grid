@@ -1,5 +1,3 @@
-<link rel="import" href="../paper-checkbox/paper-checkbox.html">
-
 <dom-module id="vaadin-grid-sorter">
   <template>
     <style>
@@ -8,76 +6,116 @@
         cursor: pointer;
       }
 
-      #indicator[direction=asc] {
+      #indicator[direction=desc] {
         transform: rotateZ(180deg);
+      }
+
+      [direction=""] {
+        color: lightgray;
       }
     </style>
 
     <content></content>
     <content select=".sort-indicator">
-      <div id="indicator" direction$="[[sort.direction]]">^</div>
+      <div id="indicator" direction$="[[direction]]">^</div><div direction$="[[direction]]">([[order]])</div>
     </content>
   </template>
   <script>
     Polymer({
       is: 'vaadin-grid-sorter',
 
-      attached: function () {
-        this.listen(this._getCell(this.parentNode), 'cell-click', '_onTap');
-      },
-
       properties: {
 
-        sortOrder: {
-          type: Array,
-          notify: true
-        },
+        _grid: Object,
+
+        _cell: Object,
 
         path: String,
 
-        sort: Object
+        direction: String,
+
+        order: Number
+
       },
 
-      _onTap: function() {
-        var grid = this._getGrid(this.parentNode);
-        grid._sortOrder = grid._sortOrder || [];
+      observers: [
+        '_parametersChanged(_grid, path, direction)'
+      ],
 
-        var sort = grid._sortOrder.filter(function(sort) {
-          return sort.path === this.path;
-        }, this)[0];
-
-        sort = sort || {
-          path: this.path,
-          direction: 'desc'
-        };
-
-        if (sort.direction === 'desc') {
-          sort.direction = 'asc';
-        } else if (sort.direction === 'asc') {
-          sort.direction = 'desc';
-        }
-
-        grid._sortOrder.splice(grid._sortOrder.indexOf(sort), 1);
-
-        this.notifyPath('sort', sort);
-        this.notifyPath('sort.direction', sort.direction);
-
-        grid.push('_sortOrder', sort);
+      ready: function() {
+        this._initialOrder = this.order;
       },
 
-      _getGrid: function(node) {
-        if (node.is == 'vaadin-grid') {
-          return node;
-        }
-        return this._getGrid(node.parentNode);
+      attached: function() {
+        this._grid = this._getAncestor('vaadin-grid', this.parentNode);
+        this._cell = this._getAncestor('th, td', this.parentNode);
+        this.listen(this._cell, 'cell-click', '_onClick');
       },
 
-      _getCell: function(node) {
-        if (node.tagName == 'TD' || node.tagName == 'TH') {
-          return node;
+      detached: function() {
+        this.unlisten(this._cell, 'cell-click', '_onClick');
+      },
+
+      _parametersChanged: function(grid, path, direction) {
+        var sorters = this._grid._sorters;
+
+        if (this._initialOrder !== undefined) {
+          sorters.push(this);
+
+          var getOrder = function(sorter) {
+            return sorter._initialOrder !== undefined ? sorter._initialOrder : sorter.order;
+          };
+          sorters.sort(function(a, b) {
+            return getOrder(a) - getOrder(b);
+          });
+
+          this._initialOrder = undefined;
+        } else {
+          this._removeItem(sorters, this);
+          if (this.direction) {
+            sorters.unshift(this);
+          }
+
+          this.order = null;
+          sorters.forEach(function(sorter, index) {
+            sorter.order = index + 1;
+          });
         }
-        return this._getCell(node.parentNode);
+
+        grid.clearCache();
+      },
+
+      _removeItem: function(array, item) {
+        var index = array.indexOf(item);
+        if (index > -1) {
+          array.splice(index, 1);
+        }
+      },
+
+      _onClick: function(e) {
+        if (Polymer.dom(e).path.indexOf(this) === -1) {
+          //TODO: Should not invoke when the sorter isn't clicked (but some other element in the cell)
+        }
+
+
+        if (this.direction === 'desc') {
+          this.direction = 'asc';
+        } else if (this.direction === 'asc') {
+          this.direction = '';
+        } else {
+          this.direction = 'desc';
+        }
+      },
+
+      _getAncestor: function(matcher, node) {
+        if (node) {
+          if (node.matches && node.matches(matcher)) {
+            return node;
+          }
+          return this._getAncestor(matcher, node.parentNode);
+        }
       }
+
     });
   </script>
 </dom-module>
@@ -90,12 +128,15 @@
   vaadin.elements.grid.SortBehavior = {
 
     properties: {
-      _sortOrder: Array
-    },
 
-    observers: [
-      'clearCache(_sortOrder, _sortOrder.*)'
-    ]
+      _sorters: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      }
+
+    }
 
   };
 </script>

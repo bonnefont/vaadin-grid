@@ -38,7 +38,7 @@
     },
 
     _multiSort: function(a, b) {
-      return (this._sortOrder || []).map(function(sort) {
+      return (this._sorters || []).map(function(sort) {
         if (sort.direction === 'asc') {
           return this._compare(Polymer.Base.get(sort.path, a), Polymer.Base.get(sort.path, b));
         } else if (sort.direction === 'desc') {
