@@ -26,10 +26,14 @@
     },
 
     _arrayDataSource: function(opts, cb) {
-      var items = this.items || [];
+      var items = this.items.slice(0) || [];
+
+      this._sort(items);
+
       var start = opts.page * opts.pageSize;
       var end = start + opts.pageSize;
       var slice = items.slice(start, end);
+
       cb(slice, items.length);
     }
 

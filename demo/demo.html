@@ -20,6 +20,78 @@
 </head>
 
 <body unresolved>
+
+  <dom-module id="vaadin-grid-sorter">
+    <template>
+      <style>
+        :host {
+          display: inline-block;
+          cursor: pointer;
+        }
+
+        #indicator[direction=asc] {
+          transform: rotateZ(180deg);
+        }
+      </style>
+
+      <content>
+        <div direction$="[[sort.direction]]" id="indicator">^</div>
+      </content>
+    </template>
+    <script>
+      Polymer({
+        is: 'vaadin-grid-sorter',
+
+        listeners: {
+          'tap' : '_onTap'
+        },
+
+        properties: {
+
+          sortOrder: {
+            type: Array,
+            notify: true
+          },
+
+          path: String,
+
+          sort: Object
+        },
+
+        _onTap: function() {
+          var grid = this._getGrid(this.parentNode);
+          grid.sortOrder = grid.sortOrder || [];
+
+          var sort = grid.sortOrder.filter(function(sort) {
+            return sort.path === this.path;
+          }, this)[0];
+
+          sort = sort || {path: this.path, direction: 'desc'};
+
+          if (sort.direction === 'desc') {
+            sort.direction = 'asc';
+          } else if (sort.direction === 'asc') {
+            sort.direction = 'desc';
+          }
+
+          grid.sortOrder.splice(grid.sortOrder.indexOf(sort), 1);
+
+          this.notifyPath('sort', sort);
+          this.notifyPath('sort.direction', sort.direction);
+
+          grid.push('sortOrder', sort);
+        },
+
+        _getGrid: function(node) {
+          if (node.is == 'vaadin-grid') {
+            return node;
+          }
+          return this._getGrid(node.parentNode);
+        }
+      });
+    </script>
+  </dom-module>
+
   <dom-module id="x-app">
     <template>
       <style>
@@ -33,81 +105,29 @@
           white-space: nowrap;
         }
       </style>
-      <vaadin-grid id="component" data-source="[[dataSource]]" size="10000000" frozen-columns="1" on-item-changed="_itemChanged" multi-selection>
-
-        <template is="row-details">
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-            dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-          <div>details-[[index]]-[[item.name]]</div>
-          <button>Howdy</button>
-          <paper-input value="{{item.name}}"></paper-input>
-        </template>
+      <vaadin-grid id="grid" data-source="[[dataSource]]" size="10000000" frozen-columns="1" on-item-changed="_itemChanged" multi-selection>
 
         <vaadin-grid-column width="100px">
           <template>
-            <span class="elItem">[[item.name]]</span>
+            <span class="elItem">[[item.a]]</span>
           </template>
           <template is="header">
-            <b class="elItem">foo-h1</b>
-          </template>
-          <template is="header">
-            foo-h2
-          </template>
-          <template is="footer">
-            footer
+            A
           </template>
         </vaadin-grid-column>
 
         <vaadin-grid-column>
           <template>
-            <paper-input value="{{item.name}}"></paper-input>
+            [[item.b]]
           </template>
           <template is="header">
-            bar-h1
-          </template>
-          <template is="header">
-            bar-h2
-          </template>
-          <template is="footer">
-            Oh yes!
+            <div>
+              <span>Foobar</span>
+              <vaadin-grid-sorter path="a"></vaadin-grid-sorter>
+            <div>
           </template>
         </vaadin-grid-column>
 
-        <vaadin-grid-column width="400px">
-          <template>
-            <div>baz-[[index]]</div>
-          </template>
-          <template is="header">
-            baz-h1
-          </template>
-          <template is="header" colspan="2">
-            baz-h2
-          </template>
-        </vaadin-grid-column>
-
-        <vaadin-grid-column width="20%">
-          <template>
-            <button onclick="document.querySelector('vaadin-grid')[(this._foo = !this._foo) ? 'expandItem' : 'collapseItem']()">[[index]]</button>
-          </template>
-          <template is="header">
-            qux-h1
-          </template>
-          <template is="header">
-            qux-h2
-          </template>
-        </vaadin-grid-column>
-
-        <vaadin-grid-column min-width="100px">
-          <template>
-            <paper-checkbox checked="{{expanded}}">Details</paper-checkbox>
-          </template>
-          <template is="header">
-            derp
-          </template>
-          <template is="header">
-            derp
-          </template>
-        </vaadin-grid-column>
 
       </vaadin-grid>
     </template>
@@ -116,28 +136,8 @@
         Polymer({
           is: 'x-app',
 
-          properties: {
-            dataSource: {
-              value: function() {
-                return function(opts, callback) {
-                  console.log('requesting page ' + opts.page);
-                  setTimeout(function() {
-                    var result = [];
-                    var firstIndex = opts.page * opts.pageSize;
-                    for (var i = 0; i < opts.pageSize; i++) {
-                      result.push({
-                        name: 'name-' + (firstIndex + i)
-                      });
-                    }
-                    callback(result);
-                  }, 1000);
-                };
-              }
-            }
-          },
-
-          _itemChanged: function(e) {
-            console.log(e.detail);
+          ready: function () {
+            this.$.grid.items = [{a: 1, b:2},{a: 2, b: -1},{a: -2, b:1},{a: 4, b:12}];
           }
         });
       });
