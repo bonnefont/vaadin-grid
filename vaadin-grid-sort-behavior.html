@@ -23,7 +23,7 @@
       is: 'vaadin-grid-sorter',
 
       attached: function () {
-        this.listen(this.parentNode.parentNode, 'cell-click', '_onTap'); // TODO: Get the cell recursively
+        this.listen(this._getCell(this.parentNode), 'cell-click', '_onTap');
       },
 
       properties: {
@@ -70,6 +70,13 @@
           return node;
         }
         return this._getGrid(node.parentNode);
+      },
+
+      _getCell: function(node) {
+        if (node.tagName == 'TD' || node.tagName == 'TH') {
+          return node;
+        }
+        return this._getCell(node.parentNode);
       }
     });
   </script>
